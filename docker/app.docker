@@ -1,0 +1,68 @@
+FROM php:7.4-fpm-alpine
+
+LABEL maintainer="David Smith <dasmthc@amazon.com>"
+
+ENV PACKAGES="\
+    autoconf \
+    build-base \
+    freetype \
+    freetype-dev \
+    g++ \
+    imagemagick \
+    imagemagick-dev \
+    make \
+    libjpeg-turbo \
+    libjpeg-turbo-dev \
+    libltdl \
+    libmcrypt \
+    libmcrypt-dev \
+    libpng \
+    libpng-dev \
+    libtool \
+    libzip-dev \
+    postgresql-dev \
+    sqlite \
+    npm \
+    yarn \
+    gnu-libiconv \
+"
+
+RUN echo \
+    && apk add --update --no-cache $PACKAGES || \
+        (sed -i -e 's/dl-cdn/dl-4/g' /etc/apk/repositories && apk add --no-cache $PACKAGES)
+
+ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
+
+RUN echo \
+    && curl -o /tmp/composer-setup.php https://getcomposer.org/installer \
+    && curl -o /tmp/composer-setup.sig https://composer.github.io/installer.sig \
+    # Make sure we're installing what we think we're installing!
+    && php -r "if (hash('SHA384', file_get_contents('/tmp/composer-setup.php')) !== trim(file_get_contents('/tmp/composer-setup.sig'))) { unlink('/tmp/composer-setup.php'); echo 'Invalid installer' . PHP_EOL; exit(1); }" \
+    && php /tmp/composer-setup.php --no-ansi --install-dir=/usr/local/bin --filename=composer \
+    && rm -f /tmp/composer-setup.*
+
+RUN echo \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && docker-php-ext-configure gd \
+            --with-freetype=/usr/include/ \
+            --with-jpeg=/usr/include/ \
+    && docker-php-ext-install gd \
+    && docker-php-ext-install opcache \
+    && docker-php-ext-install pdo_pgsql \
+    && docker-php-ext-install zip \
+    && docker-php-ext-install exif
+
+COPY package.json yarn.* /var/www/
+
+RUN echo \
+    && yarn install
+
+COPY docker/app.php.ini /usr/local/etc/php/php.ini
+COPY docker/docker-start.sh /usr/local/bin/start
+
+RUN chmod a+x /usr/local/bin/start
+
+CMD ["php-fpm stop"]
+
+CMD ["/usr/local/bin/start"]
