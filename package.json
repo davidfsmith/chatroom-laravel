@@ -12,12 +12,14 @@
     "devDependencies": {
         "axios": "^0.19.2",
         "bootstrap": "^4.0.0",
+        "browser-sync": "^2.26.12",
+        "browser-sync-webpack-plugin": "^2.0.1",
         "cross-env": "^7.0",
         "jquery": "^3.2",
         "laravel-mix": "^5.0.1",
         "lodash": "^4.17.19",
         "popper.js": "^1.12",
-        "resolve-url-loader": "^2.3.1",
+        "resolve-url-loader": "^3.1.0",
         "sass": "^1.20.1",
         "sass-loader": "^8.0.0",
         "vue": "^2.5.17",
@@ -28,6 +30,7 @@
         "moment": "^2.27.0",
         "pusher-js": "^7.0.0",
         "vform": "^1.0.1",
+        "vue-chat-scroll": "^1.4.0",
         "vue-router": "^3.4.3",
         "vuejs-logger": "^1.5.4"
     }
